@@ -1,0 +1,1 @@
+http://192.168.1.4/cgi/admin/getSDFile.cgi?file=20170802_194928D.mp4&path=DCS-936L/20170802/19/20170802_194928D.mp4

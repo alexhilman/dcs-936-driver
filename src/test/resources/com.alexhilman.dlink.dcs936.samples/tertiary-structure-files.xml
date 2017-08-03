@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="adv_sdcard.xsl"?>
+<root>
+    <common>
+        <version>1.02</version>
+        <build>2026</build>
+        <product>DCS-936L</product>
+        <serial>DCS-936L</serial>
+        <oem>D-Link</oem>
+        <cameraName>DCS-936L</cameraName>
+        <sensor>ov9732</sensor>
+        <lightADC>1</lightADC>
+        <device1_2>0</device1_2>
+        <hasAudioDetection>1</hasAudioDetection>
+        <peripheral>
+            <GPINs>0</GPINs>
+            <GPOUTs>0</GPOUTs>
+            <speaker>0</speaker>
+            <microphone>1</microphone>
+            <PT>0</PT>
+            <Z>1</Z>
+            <privacy>0</privacy>
+            <RS485>0</RS485>
+            <IR>1</IR>
+            <videoServer>0</videoServer>
+            <localStorage>1</localStorage>
+            <PIR>0</PIR>
+            <wireless>1</wireless>
+            <externalAntenna>0</externalAntenna>
+            <frontLED>0</frontLED>
+            <controllableLED>1</controllableLED>
+        </peripheral>
+        <codec>
+            <h264>1</h264>
+        </codec>
+        <extraModules>openssl https optAgent mydlink </extraModules>
+    </common>
+    <lang>
+        <frame>
+            <productpage>Product: </productpage>
+            <version>Firmware Version: </version>
+            <home>LIVE VIDEO</home>
+            <advanced>SETUP</advanced>
+            <tools>MAINTENANCE</tools>
+            <status>STATUS</status>
+            <support>HELP</support>
+            <title1>D-LINK CORPORATION | INTERNET CAMERA | </title1>
+            <title2>D-LINK CORPORATION | WIRELESS INTERNET CAMERA | </title2>
+            <copyright1>Copyright </copyright1>
+            <copyright2> 2016, D-Link Corporation / D-Link Systems, Inc. All rights reserved.</copyright2>
+            <ok>Save Settings</ok>
+            <cancel>Don't Save Settings</cancel>
+            <test>Testing...</test>
+            <save>Saving...</save>
+            <loading>loading...</loading>
+            <processing>Processing...</processing>
+        </frame>
+        <leftPanel>
+        </leftPanel>
+        <body>
+            <playback>SD MANAGEMENT</playback>
+            <playback1>SD CARD</playback1>
+            <playback2>INVALID</playback2>
+            <totalcapacity>Total :</totalcapacity>
+            <availablespace>Free :</availablespace>
+            <formatvalue>Format SD Card</formatvalue>
+            <KB> KB</KB>
+            <description1>Here you could browse and manage the files which stored in SD Card.</description1>
+            <description2>The SD Card is either unplug or invalid. Please check SD Card or format it.</description2>
+            <description3>The SD Card Storage is invalid.</description3>
+            <description4>The SD Card Storage is protected.</description4>
+            <performance>The throughput of the SD Card on your camera is not currently enough for recording.
+                We suggest you to reformat the SD Card or replace it with a higher class one.
+            </performance>
+            <sdNote>Please note that there is no SD Card plugged into the camera or the SD Card is not writable.</sdNote>
+            <stoprecrebootconfirm>Do you want to disable recording and reboot?</stoprecrebootconfirm>
+            <stoprecrebootconfirm2>Do you want to initialize?</stoprecrebootconfirm2>
+            <sdcardstatus>SD Status : </sdcardstatus>
+            <writeprotected>Write Protected</writeprotected>
+            <cardready>Ready</cardready>
+            <cardinvalid>Invalid</cardinvalid>
+            <backupconfirm>Do you want to backup files?</backupconfirm>
+            <formatconfirm>Do you want to format SD Card?</formatconfirm>
+            <completeformat>SD Card is completely formatted.</completeformat>
+            <records>SD Card</records>
+            <recordtype>Record Type: </recordtype>
+            <recordtype1>Record Type </recordtype1>
+            <name>Name</name>
+            <numoffiles>Num of files</numoffiles>
+            <filesize>Size</filesize>
+            <foldersize>Size</foldersize>
+            <used>Used :</used>
+            <video>video</video>
+            <date>Date</date>
+            <hour>Hour</hour>
+            <file>File</file>
+            <delete>Delete</delete>
+            <ok>OK</ok>
+            <deleteconfirm>The selected file will be deleted, are you sure?</deleteconfirm>
+            <deleteconfirm1>No file is selected!</deleteconfirm1>
+            <refresh>Refresh</refresh>
+            <toplevel>Up One Level</toplevel>
+            <filesperpage>Files per Page:</filesperpage>
+            <of> of</of>
+            <formatfailed>SD Card formatting failed.</formatfailed>
+            <formatrecording>Camera is recording files to SD Card now, please stop recording before format it.</formatrecording>
+            <sdrecerr>SD CARD RECORDING ENABLE</sdrecerr>
+            <sdrecerr1>If you want to browse SD Card, please disable SD Card in</sdrecerr1>
+            <avhref>Recording</avhref>
+            <sdrecerr2>page first.</sdrecerr2>
+            <formaterr>FILE SYSTEM CORRUPT</formaterr>
+            <formaterrmsg>File system of SD Card is corrupt. Please follow the instruction below to recover.</formaterrmsg>
+            <writefull>SD Card Capacity Full</writefull>
+            <recorderr1>Disable recording and reboot camera.</recorderr1>
+            <recorderr2>Backup recorded files and reformat SD Card ,or SD Card recording might fail easily.</recorderr2>
+            <recorderr3>After step2, you can go to </recorderr3>
+            <recorderr4> page to re-enable recording.</recorderr4>
+            <formaterrmsg2>Please doing the following steps after the camara rebooted:</formaterrmsg2>
+            <recover>Disable recording and reboot camera</recover>
+            <reboot1>Camera has been reboot, please wait for </reboot1>
+            <reboot2> seconds ...</reboot2>
+            <diablerecfail>Disable recording fail.</diablerecfail>
+            <over4g>Over 16G</over4g>
+            <wait>Please wait...</wait>
+            <onlywait>Please wait...</onlywait>
+            <reinit>Reinitialization</reinit>
+            <formatting>SD Card Formatting</formatting>
+            <initstep>SD Card is not reinitialized. Please do the following steps to reinitialize SD Card.</initstep>
+            <initstep1>All data in SD Card will be erased. Please backup data in SD Card, before reinitializing SD Card.</initstep1>
+            <init>Initialize </init>
+            <initstep0>Disable recording.</initstep0>
+            <over4Gstep0>The capacity of first partition of SD Card can not over 16G. Please do 'Format SD Card' to create 16G partition and format.</over4Gstep0>
+            <over4Gstep1>All data in SD Card will be erased. Please backup data in SD Card, before formating SD Card.</over4Gstep1>
+            <over4Gstep2>If SD Card size over 16G. The SD Card will create 16G partition and may not able to recover original size.</over4Gstep2>
+            <rebootFail>Reboot fail</rebootFail>
+            <formatconfirm>Do you want to format SD Card ?</formatconfirm>
+            <sdCard>SD Card</sdCard>
+            <pages>Pages:</pages>
+            <delsdcard>Delete</delsdcard>
+            <sdRecording>To format the SD Card in the camera, please disable SD Recording first.</sdRecording>
+        </body>
+        <hint>
+            <helpfulHints>Helpful Hints..</helpfulHints>
+            <formatsdcard>Format SD Card</formatsdcard>
+            <description1>Click this button to automatically format the SD Card and create folder for snapshot and video. To format SD Card, you need to disable SD Recording first.</description1>
+            <description2>If the recorded files are stored on the SD Card,click on the recorded folder and choose the recorded file you would like to view.</description2>
+            <description3>If video files are stored on the SD Card, click on the video folder and choose the video file you would like to view.</description3>
+            <description4>Reloads the file and folder information from the SD Card.</description4>
+            <format>Format SD Card - </format>
+            <view>View Recorded files -</view>
+            <playback>Playback Recorded Video - </playback>
+            <refresh>Refresh - </refresh>
+            <sdcardpath>SD Card</sdcardpath>
+            <sdcardpath1>This can indicate the current path of SD Card.</sdcardpath1>
+            <sdstatus>SD Status</sdstatus>
+            <sdstatus1>This can indicate the current SD Card status (whether it is inserted or detected).</sdstatus1>
+            <filesperpage>Files per Page</filesperpage>
+            <filesperpage1>The number of files per page.</filesperpage1>
+            <pages>Pages</pages>
+            <pages1>You can select which page to display here.</pages1>
+            <total>Total</total>
+            <total1>The total capability of SD Card.</total1>
+            <used>Used</used>
+            <used1>The used capability of SD Card.</used1>
+            <free>Free</free>
+            <free1>The free capability of SD Card.</free1>
+        </hint>
+
+    </lang>
+    <config>
+        <playback>
+            <recordEnable>1</recordEnable>
+            <status>2</status>
+            <strSDStatus>Ready</strSDStatus>
+            <performance>100</performance>
+            <targetType>0</targetType>
+            <totalcapacity>30877888</totalcapacity>
+            <availablespace>23943360</availablespace>
+            <usedspace>6934528</usedspace>
+            <modelUsedSpace>0</modelUsedSpace>
+            <folderstring>20170801_215228D.mp4:f:2066*20170801_215228D.jpg:f:41*20170801_214814D.mp4:f:2079*20170801_214814D.jpg:f:42*20170801_214522D.mp4:f:1903*</folderstring>
+            <folderpath>20170801/21</folderpath>
+            <filesperpage>5</filesperpage>
+            <currentpage>1</currentpage>
+            <totalpages>6</totalpages>
+        </playback>
+    </config>
+</root>
