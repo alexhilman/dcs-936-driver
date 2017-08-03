@@ -52,8 +52,6 @@ public class DcsFileInterpreter {
         return files;
     }
 
-    //20170801:d:-1*20170731:d:-1*20170730:d:-1*20170729:d:-1*20170728:d:-1*
-
     private Document parseXmlStream(final InputStream stream) {
         final DocumentBuilder documentBuilder = getDocumentBuilder();
         try {

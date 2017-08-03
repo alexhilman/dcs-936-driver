@@ -40,7 +40,11 @@ public class DcsFile {
     }
 
     public boolean isDirectory() {
-        return size == -1;
+        return fileType == DcsFileType.Directory;
+    }
+
+    public boolean isFile() {
+        return fileType == DcsFileType.File;
     }
 
     @Override

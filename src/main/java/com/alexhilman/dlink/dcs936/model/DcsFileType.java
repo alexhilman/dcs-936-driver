@@ -11,8 +11,8 @@ import static java.util.stream.Collectors.toMap;
 /**
  */
 public enum DcsFileType {
-    File('d'),
-    Directory('f');
+    File('f'),
+    Directory('d');
 
     private final char typeCharacter;
 
