@@ -13,13 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Interprets XML streams which the user would get when clicking through the terrible "SD Management" web interface. I
  * don't know of another integration point with this camera to get the files.
  */
 public class DcsFileInterpreter {
-    public List<DcsFile> interpret(final InputStream stream) {
-        final Document document = parseXmlStream(stream);
+    private List<DcsFile> interpret(final Document document) {
+        checkNotNull(document, "document cannot be null");
 
         final NodeList configNodes = document.getElementsByTagName("config");
         if (configNodes == null || configNodes.getLength() == 0) {
@@ -42,6 +44,14 @@ public class DcsFileInterpreter {
         return parseFolderStringValue(folderString.getTextContent());
     }
 
+    public List<DcsFile> interpret(final InputStream stream) {
+        return interpret(parseXmlStream(stream));
+    }
+
+    public List<DcsFile> interpret(final String responseBody) {
+        return interpret(parseXmlString(responseBody));
+    }
+
     private List<DcsFile> parseFolderStringValue(final String folderString) {
         assert folderString != null;
         final List<DcsFile> files = new ArrayList<>();
@@ -61,6 +71,15 @@ public class DcsFileInterpreter {
         }
     }
 
+    private Document parseXmlString(final String xml) {
+        final DocumentBuilder documentBuilder = getDocumentBuilder();
+        try {
+            return documentBuilder.parse(xml);
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot parse XML document", e);
+        }
+    }
+
     private DocumentBuilder getDocumentBuilder() {
         try {
             return DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -68,5 +87,4 @@ public class DcsFileInterpreter {
             throw new IllegalStateException("Cannot parse XML documents", e);
         }
     }
-
 }

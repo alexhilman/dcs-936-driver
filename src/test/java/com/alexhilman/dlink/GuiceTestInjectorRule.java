@@ -7,6 +7,10 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+
 /**
  * TODO: update JavaDoc
  */
@@ -39,7 +43,20 @@ public class GuiceTestInjectorRule implements TestRule {
                 injector = GuiceTestInjectorRule.injector;
 
                 if (injector == null) {
-                    injector = GuiceTestInjectorRule.injector = Guice.createInjector(new DcsModule());
+                    final String resource = "/com/alexhilman/dlink/dcs936/access.properties";
+                    final URL accessPropertiesResource =
+                            getClass().getResource(resource);
+
+                    if (accessPropertiesResource == null) {
+                        throw new IllegalStateException("No test access.properties file found at " + resource);
+                    }
+                    try {
+                        injector = GuiceTestInjectorRule.injector = Guice.createInjector(
+                                new DcsModule(new File(accessPropertiesResource.toURI()))
+                        );
+                    } catch (URISyntaxException e) {
+                        throw new IllegalStateException(e);
+                    }
                 }
             }
         }
