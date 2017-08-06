@@ -25,6 +25,6 @@ public class Dcs936ClientIT {
         final List<DcsFile> rootFiles = dcs936Client.getRootFiles();
 
         assertThat(rootFiles, is(notNullValue()));
-        assertThat(rootFiles, hasSize(greaterThan(0)));
+        assertThat(rootFiles, hasSize(greaterThan(1)));
     }
 }
