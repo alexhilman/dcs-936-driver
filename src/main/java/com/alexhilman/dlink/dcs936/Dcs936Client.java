@@ -3,17 +3,17 @@ package com.alexhilman.dlink.dcs936;
 import com.alexhilman.dlink.dcs936.model.DcsFile;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import com.squareup.okhttp.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.inject.Named;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Base64;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  */
@@ -21,26 +21,39 @@ import java.util.Base64;
 public class Dcs936Client {
     private static final Logger LOG = LogManager.getLogger(Dcs936Client.class);
 
-    private final OkHttpClient okHttpClient;
+    private static final AtomicLong REQUEEST_ID = new AtomicLong(0);
+    private final DcsFileInterpreter dcsFileInterpreter = new DcsFileInterpreter();
 
+    private final OkHttpClient okHttpClient;
     private final URL baseUrl;
     private final String usernamePasswordAuthorization;
 
     @Inject
-    public Dcs936Client(@Named("dcs.username") final String username,
-                        @Named("dcs.password") final String password,
-                        @Named("dcs.baseUrl") final URL baseUrl) {
-        this.usernamePasswordAuthorization = Base64.getEncoder()
-                                                   .encodeToString((username + ":" + password).getBytes());
-        this.baseUrl = baseUrl;
+    public Dcs936Client(final AccessCredentials accessCredentials) {
+        checkNotNull(accessCredentials, "accessCredentials cannot be null");
+
+        this.usernamePasswordAuthorization =
+                Base64.getEncoder()
+                      .encodeToString((accessCredentials.getUsername() + ":" + accessCredentials.getPassword()).getBytes());
+
+        this.baseUrl = accessCredentials.getEndpoint();
 
         okHttpClient = new OkHttpClient();
         okHttpClient.interceptors()
                     .add(chain -> {
+                        final long id = REQUEEST_ID.incrementAndGet();
+
                         final Request request = chain.request();
 
                         final StringBuilder requestString = new StringBuilder();
-                        requestString.append(request.method()).append(" ").append(request.url()).append("\n");
+                        requestString.append("> #")
+                                     .append(id)
+                                     .append("\n")
+                                     .append("> ")
+                                     .append(request.method())
+                                     .append(" ")
+                                     .append(request.url())
+                                     .append("\n");
                         request.headers()
                                .names()
                                .forEach(header -> requestString.append("> ")
@@ -48,13 +61,40 @@ public class Dcs936Client {
                                                                .append(": ")
                                                                .append(request.header(header))
                                                                .append("\n"));
-                        LOG.info("Request:\n{}", requestString.toString());
 
-                        return chain.proceed(request);
+                        LOG.debug("Request:\n{}", requestString.toString());
+
+                        final Response response = chain.proceed(request);
+
+                        final StringBuilder responseString = new StringBuilder();
+                        responseString.append("< #")
+                                      .append(id)
+                                      .append("\n")
+                                      .append("< Status=")
+                                      .append(response.code())
+                                      .append("\n");
+
+                        final byte[] responseBytes = response.body().bytes();
+                        final String responseBody = new String(responseBytes);
+                        response.headers()
+                                .names()
+                                .forEach(header -> responseString.append("< ")
+                                                                 .append(header)
+                                                                 .append(": ")
+                                                                 .append(response.header(header))
+                                                                 .append("\n"));
+
+                        responseString.append(responseBody);
+
+                        LOG.debug("Response:\n{}", responseString.toString());
+
+                        return response.newBuilder()
+                                       .body(ResponseBody.create(response.body().contentType(), responseBytes))
+                                .build();
                     });
     }
 
-    public DcsFile getRootDirectory() {
+    public List<DcsFile> getRootFiles() {
         final String url = baseUrl.toString() + SearchParams.get().withFilesPerPage(100);
         LOG.info("GET {}", url);
         final Request request = baseRequestBuilder()
@@ -75,8 +115,7 @@ public class Dcs936Client {
             throw new RuntimeException("Could not extract response body", e);
         }
 
-        LOG.info("Response: {}", responseBody);
-        return null;
+        return dcsFileInterpreter.interpret(responseBody);
     }
 
     private Request.Builder baseRequestBuilder() {
