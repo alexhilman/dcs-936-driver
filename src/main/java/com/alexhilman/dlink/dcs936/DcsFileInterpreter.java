@@ -8,6 +8,7 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,12 +73,7 @@ public class DcsFileInterpreter {
     }
 
     private Document parseXmlString(final String xml) {
-        final DocumentBuilder documentBuilder = getDocumentBuilder();
-        try {
-            return documentBuilder.parse(xml);
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot parse XML document", e);
-        }
+        return parseXmlStream(new ByteArrayInputStream(xml.getBytes()));
     }
 
     private DocumentBuilder getDocumentBuilder() {
