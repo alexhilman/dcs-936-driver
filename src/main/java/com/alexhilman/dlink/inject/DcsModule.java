@@ -1,11 +1,10 @@
 package com.alexhilman.dlink.inject;
 
-import com.alexhilman.dlink.dcs936.Client;
+import com.alexhilman.dlink.dcs936.Dcs936Client;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 
 /**
@@ -19,7 +18,7 @@ public class DcsModule extends AbstractModule {
                           .toInstance("");
         bind(URL.class).annotatedWith(Names.named("dcs.baseUrl"))
                        .toInstance(buildUrl("http://192.168.1.113/eng/admin/adv_sdcard.cgi"));
-        bind(Client.class);
+        bind(Dcs936Client.class);
     }
 
     private URL buildUrl(final String s) {

@@ -18,8 +18,8 @@ import java.util.Base64;
 /**
  */
 @Singleton
-public class Client {
-    private static final Logger LOG = LogManager.getLogger(Client.class);
+public class Dcs936Client {
+    private static final Logger LOG = LogManager.getLogger(Dcs936Client.class);
 
     private final OkHttpClient okHttpClient;
 
@@ -27,9 +27,9 @@ public class Client {
     private final String usernamePasswordAuthorization;
 
     @Inject
-    public Client(@Named("dcs.username") final String username,
-                  @Named("dcs.password") final String password,
-                  @Named("dcs.baseUrl") final URL baseUrl) {
+    public Dcs936Client(@Named("dcs.username") final String username,
+                        @Named("dcs.password") final String password,
+                        @Named("dcs.baseUrl") final URL baseUrl) {
         this.usernamePasswordAuthorization = Base64.getEncoder()
                                                    .encodeToString((username + ":" + password).getBytes());
         this.baseUrl = baseUrl;

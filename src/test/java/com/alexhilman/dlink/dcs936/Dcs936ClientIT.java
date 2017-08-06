@@ -6,16 +6,16 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class ClientIT {
+public class Dcs936ClientIT {
     @Rule
     public final GuiceTestInjectorRule guiceTestInjectorRule = GuiceTestInjectorRule.forTestSuite(this);
 
     @Inject
-    private Client client;
+    private Dcs936Client dcs936Client;
 
     @Test
     @Ignore
     public void shouldGetDirectoryList() {
-        client.getRootDirectory();
+        dcs936Client.getRootDirectory();
     }
 }
