@@ -11,6 +11,7 @@ import org.junit.runners.model.Statement;
  * TODO: update JavaDoc
  */
 public class GuiceTestInjectorRule implements TestRule {
+    private static volatile Injector injector;
     private Object testSuite;
 
     public GuiceTestInjectorRule(final Object testSuite) {
@@ -32,6 +33,16 @@ public class GuiceTestInjectorRule implements TestRule {
     }
 
     public Injector getInjector() {
-        return Guice.createInjector(new DcsModule());
+        Injector injector = GuiceTestInjectorRule.injector;
+        if (injector == null) {
+            synchronized (getClass()) {
+                injector = GuiceTestInjectorRule.injector;
+
+                if (injector == null) {
+                    injector = GuiceTestInjectorRule.injector = Guice.createInjector(new DcsModule());
+                }
+            }
+        }
+        return injector;
     }
 }
