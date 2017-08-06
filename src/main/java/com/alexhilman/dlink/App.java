@@ -15,6 +15,6 @@ public class App {
     public static void main(String[] args) {
         final Injector injector = Guice.createInjector(new DcsModule());
 
-
+        LOG.info("Hello, world");
     }
 }

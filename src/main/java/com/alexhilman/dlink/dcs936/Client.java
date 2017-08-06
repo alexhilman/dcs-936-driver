@@ -1,6 +1,6 @@
 package com.alexhilman.dlink.dcs936;
 
-import com.alexhilman.dlink.dcs936.model.DcsDirectory;
+import com.alexhilman.dlink.dcs936.model.DcsFile;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.squareup.okhttp.Call;
@@ -54,7 +54,7 @@ public class Client {
                     });
     }
 
-    public DcsDirectory getRootDirectory() {
+    public DcsFile getRootDirectory() {
         final String url = baseUrl.toString() + SearchParams.get().withFilesPerPage(100);
         LOG.info("GET {}", url);
         final Request request = baseRequestBuilder()
