@@ -28,6 +28,3 @@ public class Dcs936ClientIT {
         assertThat(rootFiles, hasSize(greaterThan(0)));
     }
 }
-
-// http://192.168.1.76:11180/eng/admin/adv_sdcard.cgi?folderpath=&command=video&filesperpage=5
-// http://localhost:11180   /eng/admin/adv_sdcard.cgi?folderpath=&filesperpage=100&command=video
