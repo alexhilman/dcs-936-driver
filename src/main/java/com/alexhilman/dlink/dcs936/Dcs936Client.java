@@ -121,12 +121,12 @@ public class Dcs936Client {
     private Request.Builder baseRequestBuilder() {
         return new Request.Builder()
                 .header("User-Agent",
-                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36")
+                        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:54.0) Gecko/20100101 Firefox/54.0")
                 .header("Accept",
                         "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
-                .header("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6")
+                .header("Accept-Language", "en-US,en;q=0.5")
                 .header("Accept-Encoding", "gzip, deflate")
-                .header("Referer", "http://192.168.1.113/eng/admin/adv_sdcard.cgi")
+                .header("Referer", baseUrl + "/eng/admin/adv_sdcard.cgi")
                 .header("Cookie", "language=eng; usePath=null")
                 .header("Authorization", "Basic " + usernamePasswordAuthorization)
                 .header("Upgrade-Insecure-Requests", "1");
