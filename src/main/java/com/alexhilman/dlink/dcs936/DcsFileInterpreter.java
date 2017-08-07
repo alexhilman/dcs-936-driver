@@ -36,13 +36,21 @@ public class DcsFileInterpreter {
         }
         final Element playback = (Element) playbackNodes.item(0);
 
+        final NodeList folderPathNodes = playback.getElementsByTagName("folderpath");
+        final String folderPath;
+        if (folderPathNodes == null || folderPathNodes.getLength() == 0) {
+            folderPath = "/";
+        } else {
+            folderPath = "/" + folderPathNodes.item(0).getTextContent();
+        }
+
         final NodeList folderStringNodes = playback.getElementsByTagName("folderstring");
         if (folderStringNodes == null || folderStringNodes.getLength() == 0) {
             throw new RuntimeException("No folderstring nodes found");
         }
         final Element folderString = (Element) folderStringNodes.item(0);
 
-        return parseFolderStringValue(folderString.getTextContent());
+        return parseFolderStringValue(folderPath, folderString.getTextContent());
     }
 
     public List<DcsFile> interpret(final InputStream stream) {
@@ -53,12 +61,12 @@ public class DcsFileInterpreter {
         return interpret(parseXmlString(responseBody));
     }
 
-    private List<DcsFile> parseFolderStringValue(final String folderString) {
+    private List<DcsFile> parseFolderStringValue(final String folderPath, final String folderString) {
         assert folderString != null;
         final List<DcsFile> files = new ArrayList<>();
         final StringTokenizer stringTokenizer = new StringTokenizer(folderString, "*", false);
         while (stringTokenizer.hasMoreTokens()) {
-            files.add(DcsFile.fromDelimitedString(stringTokenizer.nextToken()));
+            files.add(DcsFile.fromDelimitedString(folderPath, stringTokenizer.nextToken()));
         }
         return files;
     }

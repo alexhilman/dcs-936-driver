@@ -19,10 +19,10 @@ public class DcsFileInterpreterTest {
 
     @Test
     public void shouldReadRootFolderStructure() {
-        try (final InputStream rootStructureStream = getClass().getResourceAsStream(rootStructureResource)) {
-            assertThat(rootStructureStream, is(notNullValue()));
+        try (final InputStream stream = getClass().getResourceAsStream(rootStructureResource)) {
+            assertThat(stream, is(notNullValue()));
 
-            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(rootStructureStream);
+            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(stream);
 
             assertThat(dcsFiles, is(notNullValue()));
             assertThat(dcsFiles, hasSize(5));
@@ -39,11 +39,10 @@ public class DcsFileInterpreterTest {
             assertThat(fourthFile.getFileName(), is("20170729"));
             assertThat(fifthFile.getFileName(), is("20170728"));
 
-            assertThat(firstFile.isDirectory(), is(true));
-            assertThat(secondFile.isDirectory(), is(true));
-            assertThat(thirdFile.isDirectory(), is(true));
-            assertThat(fourthFile.isDirectory(), is(true));
-            assertThat(fifthFile.isDirectory(), is(true));
+            dcsFiles.forEach(file -> {
+                assertThat(file.getParentPath(), is("/"));
+                assertThat(file.isDirectory(), is(true));
+            });
         } catch (IOException e) {
             throw new AssertionError(e);
         }
@@ -51,10 +50,10 @@ public class DcsFileInterpreterTest {
 
     @Test
     public void shouldReadSecondaryFolderStructure() {
-        try (final InputStream rootStructureStream = getClass().getResourceAsStream(secondaryStructureResource)) {
-            assertThat(rootStructureStream, is(notNullValue()));
+        try (final InputStream stream = getClass().getResourceAsStream(secondaryStructureResource)) {
+            assertThat(stream, is(notNullValue()));
 
-            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(rootStructureStream);
+            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(stream);
 
             assertThat(dcsFiles, is(notNullValue()));
             assertThat(dcsFiles, hasSize(5));
@@ -71,11 +70,10 @@ public class DcsFileInterpreterTest {
             assertThat(fourthFile.getFileName(), is("18"));
             assertThat(fifthFile.getFileName(), is("17"));
 
-            assertThat(firstFile.isDirectory(), is(true));
-            assertThat(secondFile.isDirectory(), is(true));
-            assertThat(thirdFile.isDirectory(), is(true));
-            assertThat(fourthFile.isDirectory(), is(true));
-            assertThat(fifthFile.isDirectory(), is(true));
+            dcsFiles.forEach(file -> {
+                assertThat(file.isDirectory(), is(true));
+                assertThat(file.getParentPath(), is("/20170801"));
+            });
         } catch (Exception e) {
             throw new AssertionError(e);
         }
@@ -83,10 +81,10 @@ public class DcsFileInterpreterTest {
 
     @Test
     public void shouldReadTertiaryStructureWhichHasFiles() {
-        try (final InputStream rootStructureStream = getClass().getResourceAsStream(tertiaryStructureResource)) {
-            assertThat(rootStructureStream, is(notNullValue()));
+        try (final InputStream stream = getClass().getResourceAsStream(tertiaryStructureResource)) {
+            assertThat(stream, is(notNullValue()));
 
-            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(rootStructureStream);
+            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(stream);
 
             assertThat(dcsFiles, is(notNullValue()));
             assertThat(dcsFiles, hasSize(5));
@@ -103,11 +101,10 @@ public class DcsFileInterpreterTest {
             assertThat(fourthFile.getFileName(), is("20170801_214814D.jpg"));
             assertThat(fifthFile.getFileName(), is("20170801_214522D.mp4"));
 
-            assertThat(firstFile.isFile(), is(true));
-            assertThat(secondFile.isFile(), is(true));
-            assertThat(thirdFile.isFile(), is(true));
-            assertThat(fourthFile.isFile(), is(true));
-            assertThat(fifthFile.isFile(), is(true));
+            dcsFiles.forEach(file -> {
+                assertThat(file.isFile(), is(true));
+                assertThat(file.getParentPath(), is("/20170801/21"));
+            });
         } catch (Exception e) {
             throw new AssertionError(e);
         }
