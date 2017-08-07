@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Base64;
 import java.util.List;
@@ -21,8 +22,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 public class Dcs936Client {
     private static final Logger LOG = LogManager.getLogger(Dcs936Client.class);
-
     private static final AtomicLong REQUEEST_ID = new AtomicLong(0);
+    private static final String SD_EXPLORE_PATH = "/eng/admin/adv_sdcard.cgi";
+    private static final String SD_DOWNLOAD_PATH = "/cgi/admin/getSDFile.cgi";
+
     private final DcsFileInterpreter dcsFileInterpreter = new DcsFileInterpreter();
 
     private final OkHttpClient okHttpClient;
@@ -103,9 +106,12 @@ public class Dcs936Client {
     }
 
     public List<DcsFile> list(final String path) {
-        final String url = baseUrl.toString() + SearchParams.get()
-                                                            .withFilesPerPage(100)
-                                                            .withFolderPath(removeLeadingSlash(path));
+        final String url =
+                baseUrl.toString() +
+                        SD_EXPLORE_PATH +
+                        SearchParams.get()
+                                    .withFilesPerPage(100)
+                                    .withFolderPath(removeLeadingSlash(path));
         LOG.debug("GET {}", url);
         final Request request = baseRequestBuilder()
                 .url(url)
@@ -118,6 +124,11 @@ public class Dcs936Client {
         } catch (IOException e) {
             throw new RuntimeException("Could not execute request", e);
         }
+
+        if (response.code() >= 400) {
+            throw new RuntimeException("Could not list contents (status code = " + response.code() + ") of " + path);
+        }
+
         final String responseBody;
         try {
             responseBody = response.body().string();
@@ -126,6 +137,25 @@ public class Dcs936Client {
         }
 
         return dcsFileInterpreter.interpret(responseBody);
+    }
+
+    public InputStream open(final DcsFile dcsFile) throws IOException {
+        checkNotNull(dcsFile, "dcsFile cannot be null");
+        checkArgument(dcsFile.isFile(), "dcsFile must be a file");
+
+        final Request request =
+                baseRequestBuilder()
+                        .url(baseUrl + SD_DOWNLOAD_PATH + "?file=" + dcsFile.getFileName() + "&path=" + dcsFile.getAbsoluteFileName())
+                        .get()
+                        .build();
+
+        final Call call = okHttpClient.newCall(request);
+        final Response response = call.execute();
+
+        if (response.code() >= 400) {
+            throw new IOException("Could not open file (status code = " + response.code() + "): " + dcsFile.getAbsoluteFileName());
+        }
+        return response.body().byteStream();
     }
 
     private String removeLeadingSlash(final String path) {

@@ -62,7 +62,7 @@ public class DcsModule extends AbstractModule {
     private URL sdCardEndpoint() {
         final String endpoint = properties.getProperty("dcs936.endpoint");
         try {
-            return new URL(new URL(endpoint), "/eng/admin/adv_sdcard.cgi");
+            return new URL(endpoint);
         } catch (MalformedURLException e) {
             throw new IllegalStateException("Malformed endpoint URL: " + endpoint, e);
         }
