@@ -22,7 +22,7 @@ public class Dcs936ClientIT {
     @Test
     @Ignore
     public void shouldGetDirectoryList() {
-        final List<DcsFile> rootFiles = dcs936Client.getRootFiles();
+        final List<DcsFile> rootFiles = dcs936Client.list();
 
         assertThat(rootFiles, is(notNullValue()));
         assertThat(rootFiles, hasSize(greaterThan(1)));

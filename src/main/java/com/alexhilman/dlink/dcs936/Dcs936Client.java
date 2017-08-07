@@ -94,7 +94,7 @@ public class Dcs936Client {
                     });
     }
 
-    public List<DcsFile> getRootFiles() {
+    public List<DcsFile> list() {
         final String url = baseUrl.toString() + SearchParams.get().withFilesPerPage(100);
         LOG.info("GET {}", url);
         final Request request = baseRequestBuilder()
