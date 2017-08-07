@@ -68,33 +68,43 @@ public class Dcs936Client {
 
                         LOG.debug("Request:\n{}", requestString.toString());
 
-                        final Response response = chain.proceed(request);
+                        final Response preParsedResponse = chain.proceed(request);
+                        final Response responseToReturn;
 
                         final StringBuilder responseString = new StringBuilder();
                         responseString.append("< #")
                                       .append(id)
                                       .append("\n")
                                       .append("< Status=")
-                                      .append(response.code())
+                                      .append(preParsedResponse.code())
                                       .append("\n");
 
-                        final byte[] responseBytes = response.body().bytes();
-                        final String responseBody = new String(responseBytes);
-                        response.headers()
-                                .names()
-                                .forEach(header -> responseString.append("< ")
-                                                                 .append(header)
-                                                                 .append(": ")
-                                                                 .append(response.header(header))
-                                                                 .append("\n"));
+                        preParsedResponse.headers()
+                                         .names()
+                                         .forEach(header -> responseString.append("< ")
+                                                                          .append(header)
+                                                                          .append(": ")
+                                                                          .append(preParsedResponse.header(header))
+                                                                          .append("\n"));
 
-                        responseString.append(responseBody);
+                        if (preParsedResponse.body().contentType().type().equals("binary")) {
+                            responseToReturn = preParsedResponse;
+                        } else {
+                            final byte[] responseBytes = preParsedResponse.body().bytes();
+                            final String responseBody = new String(responseBytes);
+
+                            responseString.append(responseBody);
+
+                            responseToReturn =
+                                    preParsedResponse.newBuilder()
+                                                     .body(ResponseBody.create(preParsedResponse.body().contentType(),
+                                                                               responseBytes))
+                                                     .build();
+                        }
 
                         LOG.debug("Response:\n{}", responseString.toString());
 
-                        return response.newBuilder()
-                                       .body(ResponseBody.create(response.body().contentType(), responseBytes))
-                                       .build();
+                        return responseToReturn;
                     });
     }
 
@@ -106,6 +116,8 @@ public class Dcs936Client {
     }
 
     public List<DcsFile> list(final String path) {
+        checkNotNull(path, "path cannot be null");
+
         final String url =
                 baseUrl.toString() +
                         SD_EXPLORE_PATH +
