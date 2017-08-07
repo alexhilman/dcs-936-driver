@@ -72,7 +72,7 @@ public class DcsFileInterpreterTest {
 
             dcsFiles.forEach(file -> {
                 assertThat(file.isDirectory(), is(true));
-                assertThat(file.getParentPath(), is("/20170801"));
+                assertThat(file.getParentPath(), is("/20170801/"));
             });
         } catch (Exception e) {
             throw new AssertionError(e);
@@ -103,7 +103,7 @@ public class DcsFileInterpreterTest {
 
             dcsFiles.forEach(file -> {
                 assertThat(file.isFile(), is(true));
-                assertThat(file.getParentPath(), is("/20170801/21"));
+                assertThat(file.getParentPath(), is("/20170801/21/"));
             });
         } catch (Exception e) {
             throw new AssertionError(e);

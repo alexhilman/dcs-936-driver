@@ -12,8 +12,6 @@ import java.net.URL;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -97,13 +95,11 @@ public class Dcs936Client {
                     });
     }
 
-    public List<DcsFile> list(final DcsFile... foldersInPath) {
-        checkNotNull(foldersInPath, "foldersInPath cannot be null");
-        checkArgument(foldersInPath.length > 0, "foldersInPath must have at least one element");
+    public List<DcsFile> list(final DcsFile file) {
+        checkNotNull(file, "file cannot be null");
+        checkArgument(file.isDirectory(), "file is not a folder");
 
-        return list(Stream.of(foldersInPath)
-                          .map(DcsFile::getFileName)
-                          .collect(Collectors.joining("/")));
+        return list(file.getParentPath() + file.getFileName());
     }
 
     public List<DcsFile> list(final String path) {

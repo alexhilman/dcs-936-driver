@@ -28,7 +28,22 @@ public class DcsFile {
         final String[] split = delimitedString.split(":");
         checkArgument(split.length == 3, "invalid delimitedString format; expected x:y:z");
 
-        return new DcsFile(parentPath, split[0], DcsFileType.fromCharacter(split[1].charAt(0)), Integer.parseInt(split[2]));
+        return new DcsFile(toFolderPath(parentPath), split[0], DcsFileType.fromCharacter(split[1].charAt(0)), Integer.parseInt(split[2]));
+    }
+
+    private static String toFolderPath(final String path) {
+        final StringBuilder newPath = new StringBuilder("/");
+
+        if (path.startsWith("/")) {
+            newPath.append(path.substring(1));
+        } else {
+            newPath.append(path);
+        }
+
+        if (newPath.charAt(newPath.length() - 1) == '/') {
+            return newPath.toString();
+        }
+        return newPath.append("/").toString();
     }
 
     public String getFileName() {

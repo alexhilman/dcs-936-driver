@@ -32,7 +32,7 @@ public class Dcs936ClientIT {
         assertThat(hourFolders, hasSize(greaterThan(0)));
 
         final DcsFile firstHourFolder = hourFolders.get(0);
-        final List<DcsFile> movieFiles = dcs936Client.list(firstDateFolder, firstHourFolder);
+        final List<DcsFile> movieFiles = dcs936Client.list(firstHourFolder);
         assertThat(movieFiles, is(notNullValue()));
         assertThat(movieFiles, hasSize(greaterThan(0)));
         movieFiles.forEach(file -> {
