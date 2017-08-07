@@ -24,6 +24,12 @@ public class DcsFileInterpreter {
     private List<DcsFile> interpret(final Document document) {
         checkNotNull(document, "document cannot be null");
 
+        final NodeList cameraNameNodes = document.getElementsByTagName("cameraName");
+        if (cameraNameNodes == null || cameraNameNodes.getLength() == 0) {
+            throw new RuntimeException("No cameraName node found");
+        }
+        final String cameraName = cameraNameNodes.item(0).getTextContent();
+
         final NodeList configNodes = document.getElementsByTagName("config");
         if (configNodes == null || configNodes.getLength() == 0) {
             throw new RuntimeException("No config node found");
@@ -50,7 +56,7 @@ public class DcsFileInterpreter {
         }
         final Element folderString = (Element) folderStringNodes.item(0);
 
-        return parseFolderStringValue(folderPath, folderString.getTextContent());
+        return parseFolderStringValue(cameraName, folderPath, folderString.getTextContent());
     }
 
     public List<DcsFile> interpret(final InputStream stream) {
@@ -61,12 +67,13 @@ public class DcsFileInterpreter {
         return interpret(parseXmlString(responseBody));
     }
 
-    private List<DcsFile> parseFolderStringValue(final String folderPath, final String folderString) {
+    private List<DcsFile> parseFolderStringValue(final String cameraName, final String folderPath,
+                                                 final String folderString) {
         assert folderString != null;
         final List<DcsFile> files = new ArrayList<>();
         final StringTokenizer stringTokenizer = new StringTokenizer(folderString, "*", false);
         while (stringTokenizer.hasMoreTokens()) {
-            files.add(DcsFile.fromDelimitedString(folderPath, stringTokenizer.nextToken()));
+            files.add(DcsFile.fromDelimitedString(cameraName, folderPath, stringTokenizer.nextToken()));
         }
         return files;
     }

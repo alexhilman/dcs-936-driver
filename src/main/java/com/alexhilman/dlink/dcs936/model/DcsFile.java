@@ -6,29 +6,38 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  */
 public class DcsFile {
+    private final String cameraName;
     private final String parentPath;
     private final String fileName;
     private final DcsFileType fileType;
     private final int size;
 
-    DcsFile(final String parentPath,
+    DcsFile(final String cameraName, final String parentPath,
             final String fileName,
             final DcsFileType fileType,
             final int size) {
+        this.cameraName = cameraName;
         this.parentPath = checkNotNull(parentPath, "parentPath cannot be null");
         this.fileName = checkNotNull(fileName, "fileName cannot be null");
         this.fileType = checkNotNull(fileType, "fileType cannot be null");
         this.size = size;
     }
 
-    public static DcsFile fromDelimitedString(final String parentPath, final String delimitedString) {
+    public static DcsFile fromDelimitedString(final String cameraName,
+                                              final String parentPath,
+                                              final String delimitedString) {
+        checkNotNull(cameraName, "cameraName cannot be null");
         checkNotNull(parentPath, "parentPath cannot be null");
         checkNotNull(delimitedString, "delimitedString cannot be null");
 
         final String[] split = delimitedString.split(":");
         checkArgument(split.length == 3, "invalid delimitedString format; expected x:y:z");
 
-        return new DcsFile(toFolderPath(parentPath), split[0], DcsFileType.fromCharacter(split[1].charAt(0)), Integer.parseInt(split[2]));
+        return new DcsFile(cameraName,
+                           toFolderPath(parentPath),
+                           split[0],
+                           DcsFileType.fromCharacter(split[1].charAt(0)),
+                           Integer.parseInt(split[2]));
     }
 
     private static String toFolderPath(final String path) {
@@ -70,6 +79,10 @@ public class DcsFile {
         return parentPath;
     }
 
+    public String getCameraName() {
+        return cameraName;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
@@ -78,6 +91,7 @@ public class DcsFile {
         final DcsFile dcsFile = (DcsFile) o;
 
         if (size != dcsFile.size) return false;
+        if (!cameraName.equals(dcsFile.cameraName)) return false;
         if (!parentPath.equals(dcsFile.parentPath)) return false;
         if (!fileName.equals(dcsFile.fileName)) return false;
         return fileType == dcsFile.fileType;
@@ -85,7 +99,8 @@ public class DcsFile {
 
     @Override
     public int hashCode() {
-        int result = parentPath.hashCode();
+        int result = cameraName.hashCode();
+        result = 31 * result + parentPath.hashCode();
         result = 31 * result + fileName.hashCode();
         result = 31 * result + fileType.hashCode();
         result = 31 * result + size;
@@ -95,10 +110,15 @@ public class DcsFile {
     @Override
     public String toString() {
         return "DcsFile{" +
-                "parentPath='" + parentPath + '\'' +
+                "cameraName='" + cameraName + '\'' +
+                ", parentPath='" + parentPath + '\'' +
                 ", fileName='" + fileName + '\'' +
                 ", fileType=" + fileType +
                 ", size=" + size +
                 '}';
+    }
+
+    public String getAbsoluteFileName() {
+        return cameraName + parentPath + getFileName();
     }
 }

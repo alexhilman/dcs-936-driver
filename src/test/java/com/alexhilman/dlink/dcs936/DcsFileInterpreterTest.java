@@ -42,6 +42,7 @@ public class DcsFileInterpreterTest {
             dcsFiles.forEach(file -> {
                 assertThat(file.getParentPath(), is("/"));
                 assertThat(file.isDirectory(), is(true));
+                assertThat(file.getCameraName(), is("DCS-936L"));
             });
         } catch (IOException e) {
             throw new AssertionError(e);
@@ -73,6 +74,7 @@ public class DcsFileInterpreterTest {
             dcsFiles.forEach(file -> {
                 assertThat(file.isDirectory(), is(true));
                 assertThat(file.getParentPath(), is("/20170801/"));
+                assertThat(file.getCameraName(), is("DCS-936L"));
             });
         } catch (Exception e) {
             throw new AssertionError(e);
@@ -104,6 +106,7 @@ public class DcsFileInterpreterTest {
             dcsFiles.forEach(file -> {
                 assertThat(file.isFile(), is(true));
                 assertThat(file.getParentPath(), is("/20170801/21/"));
+                assertThat(file.getCameraName(), is("DCS-936L"));
             });
         } catch (Exception e) {
             throw new AssertionError(e);
