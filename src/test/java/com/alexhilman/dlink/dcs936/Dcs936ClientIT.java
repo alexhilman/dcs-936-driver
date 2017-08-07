@@ -21,10 +21,22 @@ public class Dcs936ClientIT {
 
     @Test
     @Ignore
-    public void shouldGetDirectoryList() {
-        final List<DcsFile> rootFiles = dcs936Client.list();
+    public void shouldDrillDownToMovieFiles() {
+        final List<DcsFile> dateFolders = dcs936Client.list("/");
+        assertThat(dateFolders, is(notNullValue()));
+        assertThat(dateFolders, hasSize(greaterThan(1)));
 
-        assertThat(rootFiles, is(notNullValue()));
-        assertThat(rootFiles, hasSize(greaterThan(1)));
+        final DcsFile firstDateFolder = dateFolders.get(0);
+        final List<DcsFile> hourFolders = dcs936Client.list(firstDateFolder);
+        assertThat(hourFolders, is(notNullValue()));
+        assertThat(hourFolders, hasSize(greaterThan(0)));
+
+        final DcsFile firstHourFolder = hourFolders.get(0);
+        final List<DcsFile> movieFiles = dcs936Client.list(firstDateFolder, firstHourFolder);
+        assertThat(movieFiles, is(notNullValue()));
+        assertThat(movieFiles, hasSize(greaterThan(0)));
+        movieFiles.forEach(file -> {
+            assertThat(file.getFileName(), anyOf(endsWith(".jpg"), endsWith(".mp4")));
+        });
     }
 }

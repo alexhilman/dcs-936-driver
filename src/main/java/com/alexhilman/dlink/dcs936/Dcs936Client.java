@@ -12,7 +12,10 @@ import java.net.URL;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -90,13 +93,24 @@ public class Dcs936Client {
 
                         return response.newBuilder()
                                        .body(ResponseBody.create(response.body().contentType(), responseBytes))
-                                .build();
+                                       .build();
                     });
     }
 
-    public List<DcsFile> list() {
-        final String url = baseUrl.toString() + SearchParams.get().withFilesPerPage(100);
-        LOG.info("GET {}", url);
+    public List<DcsFile> list(final DcsFile... foldersInPath) {
+        checkNotNull(foldersInPath, "foldersInPath cannot be null");
+        checkArgument(foldersInPath.length > 0, "foldersInPath must have at least one element");
+
+        return list(Stream.of(foldersInPath)
+                          .map(DcsFile::getFileName)
+                          .collect(Collectors.joining("/")));
+    }
+
+    public List<DcsFile> list(final String path) {
+        final String url = baseUrl.toString() + SearchParams.get()
+                                                            .withFilesPerPage(100)
+                                                            .withFolderPath(removeLeadingSlash(path));
+        LOG.debug("GET {}", url);
         final Request request = baseRequestBuilder()
                 .url(url)
                 .get()
@@ -116,6 +130,16 @@ public class Dcs936Client {
         }
 
         return dcsFileInterpreter.interpret(responseBody);
+    }
+
+    private String removeLeadingSlash(final String path) {
+        final String pathWithoutLeadingSlash;
+        if (path.startsWith("/")) {
+            pathWithoutLeadingSlash = path.substring(1);
+        } else {
+            pathWithoutLeadingSlash = path;
+        }
+        return pathWithoutLeadingSlash;
     }
 
     private Request.Builder baseRequestBuilder() {

@@ -20,7 +20,7 @@ class SearchParams {
         return this;
     }
 
-    private SearchParams withFolderPath(final String folderPath) {
+    public SearchParams withFolderPath(final String folderPath) {
         params.put("folderpath", folderPath);
         return this;
     }
