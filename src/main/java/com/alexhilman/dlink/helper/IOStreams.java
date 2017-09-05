@@ -30,7 +30,7 @@ public class IOStreams {
             final byte[] newStreamCopy = new byte[streamCopy.length + bytesRead];
 
             System.arraycopy(streamCopy, 0, newStreamCopy, 0, streamCopy.length);
-            System.arraycopy(buffer, 0, newStreamCopy, streamCopy.length, buffer.length);
+            System.arraycopy(buffer, 0, newStreamCopy, streamCopy.length, bytesRead);
 
             streamCopy = newStreamCopy;
         }

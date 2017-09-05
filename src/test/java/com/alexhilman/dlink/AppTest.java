@@ -68,7 +68,6 @@ public class AppTest {
         try {
             final File newFile = new File(folder, fileToDownload.getFileName());
             if (newFile.exists() && newFile.length() == fileToDownload.getSize()) {
-                // all good, but this never gets hit... why? File size is different...
                 LOG.info("File {} already exists and matches the camera file size",
                          fileToDownload.getAbsoluteFileName());
             } else {

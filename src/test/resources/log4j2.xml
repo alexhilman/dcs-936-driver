@@ -3,11 +3,11 @@
     <Properties>
         <Property name="filename">log/dcs-936-downloader.log</Property>
     </Properties>
-    <ThresholdFilter level="DEBUG"/>
+    <ThresholdFilter level="INFO"/>
 
     <Appenders>
         <Console name="STDOUT">
-            <PatternLayout pattern="%d [%t] %c{1.}: %M %m %ex%n"/>
+            <PatternLayout pattern="%d [%p{length=5}] [%t] %c{1.}: %m %ex%n"/>
         </Console>
         <File name="File" fileName="${filename}">
             <PatternLayout>

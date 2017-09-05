@@ -153,7 +153,9 @@ public class Dcs936Client {
             throw new RuntimeException("Could not extract response body", e);
         }
 
-        return dcsFileInterpreter.interpret(responseBody);
+        final List<DcsFile> files = dcsFileInterpreter.interpret(responseBody);
+        files.forEach(this::requestSize);
+        return files;
     }
 
     public InputStream open(final DcsFile dcsFile) throws IOException {
