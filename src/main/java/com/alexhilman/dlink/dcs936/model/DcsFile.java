@@ -121,4 +121,8 @@ public class DcsFile {
     public String getAbsoluteFileName() {
         return cameraName + parentPath + getFileName();
     }
+
+    public String getPathInCamera() {
+        return parentPath + getFileName();
+    }
 }
