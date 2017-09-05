@@ -40,23 +40,6 @@ public class AppTest {
         }
     }
 
-    @Ignore
-    @Test
-    public void shouldGetFiles() {
-        recurseForMovies("/");
-    }
-
-    private void recurseForMovies(final String path) {
-        dcs936Client.list(path)
-                    .forEach(f -> {
-                        if (f.isDirectory()) {
-                            recurseForMovies(f.getPathInCamera());
-                        } else if (f.getAbsoluteFileName().endsWith(".mp4")) {
-                            download(f, downloadLocation);
-                        }
-                    });
-    }
-
     private void download(final DcsFile fileToDownload, final File parentFolder) {
         final File folder = new File(parentFolder, fileToDownload.getParentPath());
         if (!folder.exists()) {

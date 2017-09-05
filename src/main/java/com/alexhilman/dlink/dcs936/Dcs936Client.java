@@ -12,13 +12,17 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static com.alexhilman.dlink.helper.IOStreams.copyToByteArrayInputStream;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toList;
 
 /**
  */
@@ -28,6 +32,8 @@ public class Dcs936Client {
     private static final AtomicLong REQUEEST_ID = new AtomicLong(0);
     private static final String SD_EXPLORE_PATH = "/eng/admin/adv_sdcard.cgi";
     private static final String SD_DOWNLOAD_PATH = "/cgi/admin/getSDFile.cgi";
+    private static final DateTimeFormatter FIRST_FOLDER_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final DateTimeFormatter FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss'D.mp4'");
 
     private final DcsFileInterpreter dcsFileInterpreter = new DcsFileInterpreter();
 
@@ -112,14 +118,14 @@ public class Dcs936Client {
                     });
     }
 
-    public List<DcsFile> list(final DcsFile file) {
+    List<DcsFile> list(final DcsFile file) {
         checkNotNull(file, "file cannot be null");
         checkArgument(file.isDirectory(), "file is not a folder");
 
         return list(file.getParentPath() + file.getFileName());
     }
 
-    public List<DcsFile> list(final String path) {
+    List<DcsFile> list(final String path) {
         checkNotNull(path, "path cannot be null");
 
         final String url =
@@ -242,5 +248,36 @@ public class Dcs936Client {
                 .header("Cookie", "language=eng; usePath=null")
                 .header("Authorization", "Basic " + usernamePasswordAuthorization)
                 .header("Upgrade-Insecure-Requests", "1");
+    }
+
+    public List<DcsFile> findNewMoviesSince(final Instant earliestInstant) {
+        final ZonedDateTime earliestDateTime = earliestInstant.atZone(ZoneId.systemDefault());
+        return list("/").stream()
+                        .filter(dir -> {
+                            final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
+                            return earliestDateTime.toLocalDate().isEqual(dirDate) ||
+                                    earliestDateTime.toLocalDate().isBefore(dirDate);
+                        })
+                        .map(dir -> list(dir).stream()
+                                             .filter(hourDir -> earliestDateTime.toLocalTime()
+                                                                                .getHour() <= Integer.parseInt(hourDir.getFileName()))
+                                             .collect(toList()))
+                        .flatMap(List::stream)
+                        .map(hourDir -> list(hourDir).stream()
+                                                     .filter(file -> file.getFileName().endsWith(".mp4"))
+                                                     .filter(movieFile -> {
+                                                         final LocalDateTime dt =
+                                                                 earliestDateTime.toLocalDate()
+                                                                                 .atTime(earliestDateTime.toLocalTime());
+
+                                                         final LocalDateTime fileDateTime =
+                                                                 LocalDateTime.parse(movieFile.getFileName(),
+                                                                                     FILE_DATE_FORMAT);
+
+                                                         return dt.isEqual(fileDateTime) || dt.isBefore(fileDateTime);
+                                                     })
+                                                     .collect(toList()))
+                        .flatMap(List::stream)
+                        .collect(toList());
     }
 }
