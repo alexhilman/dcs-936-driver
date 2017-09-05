@@ -10,17 +10,16 @@ public class DcsFile {
     private final String parentPath;
     private final String fileName;
     private final DcsFileType fileType;
-    private final int size;
+    private volatile int size = -1;
 
-    DcsFile(final String cameraName, final String parentPath,
+    DcsFile(final String cameraName,
+            final String parentPath,
             final String fileName,
-            final DcsFileType fileType,
-            final int size) {
+            final DcsFileType fileType) {
         this.cameraName = cameraName;
         this.parentPath = checkNotNull(parentPath, "parentPath cannot be null");
         this.fileName = checkNotNull(fileName, "fileName cannot be null");
         this.fileType = checkNotNull(fileType, "fileType cannot be null");
-        this.size = size;
     }
 
     public static DcsFile fromDelimitedString(final String cameraName,
@@ -36,8 +35,7 @@ public class DcsFile {
         return new DcsFile(cameraName,
                            toFolderPath(parentPath),
                            split[0],
-                           DcsFileType.fromCharacter(split[1].charAt(0)),
-                           Integer.parseInt(split[2]));
+                           DcsFileType.fromCharacter(split[1].charAt(0)));
     }
 
     private static String toFolderPath(final String path) {
@@ -61,6 +59,11 @@ public class DcsFile {
 
     public int getSize() {
         return size;
+    }
+
+    public DcsFile setSize(final int size) {
+        this.size = size;
+        return this;
     }
 
     public DcsFileType getFileType() {

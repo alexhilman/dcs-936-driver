@@ -1,6 +1,8 @@
 package com.alexhilman.dlink.dcs936;
 
 import com.alexhilman.dlink.dcs936.model.DcsFile;
+import com.alexhilman.dlink.helper.IOStreams;
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.squareup.okhttp.*;
@@ -14,6 +16,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.alexhilman.dlink.helper.IOStreams.copyToByteArrayInputStream;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -87,7 +90,8 @@ public class Dcs936Client {
                                                                           .append(preParsedResponse.header(header))
                                                                           .append("\n"));
 
-                        if (preParsedResponse.body().contentType().type().equals("binary")) {
+                        final ResponseBody body = preParsedResponse.body();
+                        if (body != null && body.contentType() != null && body.contentType().type().equals("binary")) {
                             responseToReturn = preParsedResponse;
                         } else {
                             final byte[] responseBytes = preParsedResponse.body().bytes();
@@ -144,6 +148,7 @@ public class Dcs936Client {
         final String responseBody;
         try {
             responseBody = response.body().string();
+            response.body().close();
         } catch (IOException e) {
             throw new RuntimeException("Could not extract response body", e);
         }
@@ -167,7 +172,50 @@ public class Dcs936Client {
         if (response.code() >= 400) {
             throw new IOException("Could not open file (status code = " + response.code() + "): " + dcsFile.getAbsoluteFileName());
         }
-        return response.body().byteStream();
+        try {
+            return copyToByteArrayInputStream(response.body().byteStream());
+        } finally {
+            response.body().close();
+        }
+    }
+
+    void requestSize(final DcsFile dcsFile) {
+        checkNotNull(dcsFile, "dcsFile cannot be null");
+
+        if (dcsFile.isDirectory()) {
+            return;
+        }
+
+        final Request request =
+                baseRequestBuilder()
+                        .url(baseUrl + SD_DOWNLOAD_PATH + "?file=" + dcsFile.getFileName() + "&path=" + dcsFile.getAbsoluteFileName())
+                        .get()
+                        .build();
+
+        final Call call = okHttpClient.newCall(request);
+        final Response response;
+        try {
+            response = call.execute();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not get the headers for file: " + dcsFile.getAbsoluteFileName(), e);
+        }
+
+        if (response.code() >= 400) {
+            throw new RuntimeException("Could not get the headers for file: " + dcsFile.getAbsoluteFileName());
+        }
+
+        final String header = response.header("Content-Length");
+        if (Strings.isNullOrEmpty(header)) {
+            throw new RuntimeException("Server did not return the Content-Length for the requested file: " + dcsFile.getAbsoluteFileName());
+        }
+
+        dcsFile.setSize(Integer.parseInt(header));
+
+        try {
+            response.body().close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private String removeLeadingSlash(final String path) {

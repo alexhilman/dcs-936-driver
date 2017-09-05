@@ -48,6 +48,28 @@ public class Dcs936ClientIT {
 
     @Test
     @Ignore
+    public void shouldGetSizeForFile() {
+        final List<DcsFile> dateFolders = dcs936Client.list("/");
+        assertThat(dateFolders, is(notNullValue()));
+        assertThat(dateFolders, hasSize(greaterThan(1)));
+
+        final DcsFile firstDateFolder = dateFolders.get(0);
+        final List<DcsFile> hourFolders = dcs936Client.list(firstDateFolder);
+        assertThat(hourFolders, is(notNullValue()));
+        assertThat(hourFolders, hasSize(greaterThan(0)));
+
+        final DcsFile firstHourFolder = hourFolders.get(0);
+        final List<DcsFile> movieFiles = dcs936Client.list(firstHourFolder);
+        assertThat(movieFiles, is(notNullValue()));
+        assertThat(movieFiles, hasSize(greaterThan(0)));
+        movieFiles.forEach(file -> {
+            dcs936Client.requestSize(file);
+            assertThat(file.getSize(), is(greaterThan(0)));
+        });
+    }
+
+    @Test
+    @Ignore
     public void shouldOpenFile() throws IOException {
         final File tempFile = File.createTempFile("dcs-936-", ".mp4");
         assertThat(tempFile.exists(), is(true));
