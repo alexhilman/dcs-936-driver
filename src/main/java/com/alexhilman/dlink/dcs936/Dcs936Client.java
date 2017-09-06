@@ -1,7 +1,6 @@
 package com.alexhilman.dlink.dcs936;
 
 import com.alexhilman.dlink.dcs936.model.DcsFile;
-import com.alexhilman.dlink.helper.IOStreams;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -14,10 +13,10 @@ import java.io.InputStream;
 import java.net.URL;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import static com.alexhilman.dlink.helper.IOStreams.copyToByteArrayInputStream;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -250,16 +249,18 @@ public class Dcs936Client {
                 .header("Upgrade-Insecure-Requests", "1");
     }
 
-    public List<DcsFile> findNewMoviesSince(final Instant earliestInstant) {
-        final ZonedDateTime earliestDateTime = earliestInstant.atZone(ZoneId.systemDefault());
+    public List<DcsFile> findNewMoviesSince(final Instant sinceInstant) {
+        // plus 1 sec: DCS936 only stores seconds in the file timestamp and we want what is after the instant
+        final ZonedDateTime sinceDateTime = sinceInstant.plus(1, ChronoUnit.SECONDS)
+                                                           .atZone(ZoneId.systemDefault());
         return list("/").stream()
                         .filter(dir -> {
                             final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
-                            return earliestDateTime.toLocalDate().isEqual(dirDate) ||
-                                    earliestDateTime.toLocalDate().isBefore(dirDate);
+                            return sinceDateTime.toLocalDate().isEqual(dirDate) ||
+                                    sinceDateTime.toLocalDate().isBefore(dirDate);
                         })
                         .map(dir -> list(dir).stream()
-                                             .filter(hourDir -> earliestDateTime.toLocalTime()
+                                             .filter(hourDir -> sinceDateTime.toLocalTime()
                                                                                 .getHour() <= Integer.parseInt(hourDir.getFileName()))
                                              .collect(toList()))
                         .flatMap(List::stream)
@@ -267,8 +268,8 @@ public class Dcs936Client {
                                                      .filter(file -> file.getFileName().endsWith(".mp4"))
                                                      .filter(movieFile -> {
                                                          final LocalDateTime dt =
-                                                                 earliestDateTime.toLocalDate()
-                                                                                 .atTime(earliestDateTime.toLocalTime());
+                                                                 sinceDateTime.toLocalDate()
+                                                                                 .atTime(sinceDateTime.toLocalTime());
 
                                                          final LocalDateTime fileDateTime =
                                                                  LocalDateTime.parse(movieFile.getFileName(),
@@ -283,7 +284,7 @@ public class Dcs936Client {
 
     public Instant getFileInstant(final DcsFile file) {
         return LocalDateTime.parse(file.getFileName(), FILE_DATE_FORMAT)
-                     .atZone(ZoneId.systemDefault())
-                     .toInstant();
+                            .atZone(ZoneId.systemDefault())
+                            .toInstant();
     }
 }
