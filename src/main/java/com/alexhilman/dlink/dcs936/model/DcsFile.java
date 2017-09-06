@@ -1,5 +1,7 @@
 package com.alexhilman.dlink.dcs936.model;
 
+import java.time.Instant;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -10,12 +12,13 @@ public class DcsFile {
     private final String parentPath;
     private final String fileName;
     private final DcsFileType fileType;
-    private volatile int size = -1;
+    private Instant createdInstant;
+    private int size = -1;
 
     public DcsFile(final String cameraName,
-            final String parentPath,
-            final String fileName,
-            final DcsFileType fileType) {
+                   final String parentPath,
+                   final String fileName,
+                   final DcsFileType fileType) {
         this.cameraName = cameraName;
         this.parentPath = checkNotNull(parentPath, "parentPath cannot be null");
         this.fileName = checkNotNull(fileName, "fileName cannot be null");
@@ -94,18 +97,20 @@ public class DcsFile {
         final DcsFile dcsFile = (DcsFile) o;
 
         if (size != dcsFile.size) return false;
-        if (!cameraName.equals(dcsFile.cameraName)) return false;
-        if (!parentPath.equals(dcsFile.parentPath)) return false;
-        if (!fileName.equals(dcsFile.fileName)) return false;
-        return fileType == dcsFile.fileType;
+        if (cameraName != null ? !cameraName.equals(dcsFile.cameraName) : dcsFile.cameraName != null) return false;
+        if (parentPath != null ? !parentPath.equals(dcsFile.parentPath) : dcsFile.parentPath != null) return false;
+        if (fileName != null ? !fileName.equals(dcsFile.fileName) : dcsFile.fileName != null) return false;
+        if (fileType != dcsFile.fileType) return false;
+        return createdInstant != null ? createdInstant.equals(dcsFile.createdInstant) : dcsFile.createdInstant == null;
     }
 
     @Override
     public int hashCode() {
-        int result = cameraName.hashCode();
-        result = 31 * result + parentPath.hashCode();
-        result = 31 * result + fileName.hashCode();
-        result = 31 * result + fileType.hashCode();
+        int result = cameraName != null ? cameraName.hashCode() : 0;
+        result = 31 * result + (parentPath != null ? parentPath.hashCode() : 0);
+        result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
+        result = 31 * result + (fileType != null ? fileType.hashCode() : 0);
+        result = 31 * result + (createdInstant != null ? createdInstant.hashCode() : 0);
         result = 31 * result + size;
         return result;
     }
@@ -117,6 +122,7 @@ public class DcsFile {
                 ", parentPath='" + parentPath + '\'' +
                 ", fileName='" + fileName + '\'' +
                 ", fileType=" + fileType +
+                ", createdInstant=" + createdInstant +
                 ", size=" + size +
                 '}';
     }
@@ -127,5 +133,14 @@ public class DcsFile {
 
     public String getPathInCamera() {
         return parentPath + getFileName();
+    }
+
+    public Instant getCreatedInstant() {
+        return createdInstant;
+    }
+
+    public DcsFile setCreatedInstant(final Instant createdInstant) {
+        this.createdInstant = createdInstant;
+        return this;
     }
 }

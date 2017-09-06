@@ -23,7 +23,8 @@ public class Dcs936ClientTest {
 
         final DcsFile newFile = new DcsFile("dummy",
                                             "/abc/123",
-                                            now.atZone(ZoneId.systemDefault()).format(Dcs936Client.FILE_DATE_FORMAT),
+                                            now.atZone(ZoneId.systemDefault())
+                                               .format(Dcs936Client.FILE_DATE_FORMAT) + "D.mp4",
                                             DcsFileType.File);
 
         final Instant fileInstant = dcs936Client.getFileInstant(newFile);

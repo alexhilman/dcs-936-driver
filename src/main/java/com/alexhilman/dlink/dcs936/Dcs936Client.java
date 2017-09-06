@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -32,7 +31,7 @@ public class Dcs936Client {
     private static final String SD_EXPLORE_PATH = "/eng/admin/adv_sdcard.cgi";
     private static final String SD_DOWNLOAD_PATH = "/cgi/admin/getSDFile.cgi";
     private static final DateTimeFormatter FIRST_FOLDER_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
-    public static final DateTimeFormatter FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss'D.mp4'");
+    public static final DateTimeFormatter FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final DcsFileInterpreter dcsFileInterpreter = new DcsFileInterpreter();
 
@@ -159,8 +158,15 @@ public class Dcs936Client {
         }
 
         final List<DcsFile> files = dcsFileInterpreter.interpret(responseBody);
-        files.forEach(this::requestSize);
-        return files;
+        return files.stream()
+                    .filter(f -> f.isDirectory() || f.getFileName().endsWith(".mp4"))
+                    .peek(f -> {
+                        if (f.isFile()) {
+                            requestSize(f);
+                            f.setCreatedInstant(getFileInstant(f));
+                        }
+                    })
+                    .collect(toList());
     }
 
     public InputStream open(final DcsFile dcsFile) throws IOException {
@@ -250,40 +256,36 @@ public class Dcs936Client {
     }
 
     public List<DcsFile> findNewMoviesSince(final Instant sinceInstant) {
-        // plus 1 sec: DCS936 only stores seconds in the file timestamp and we want what is after the instant
-        final ZonedDateTime sinceDateTime = sinceInstant.plus(1, ChronoUnit.SECONDS)
-                                                           .atZone(ZoneId.systemDefault());
+        final ZonedDateTime sinceDateTime = sinceInstant.atZone(ZoneId.systemDefault());
         return list("/").stream()
                         .filter(dir -> {
                             final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
-                            return sinceDateTime.toLocalDate().isEqual(dirDate) ||
-                                    sinceDateTime.toLocalDate().isBefore(dirDate);
+                            return sinceDateTime.toLocalDate().isBefore(dirDate);
                         })
                         .map(dir -> list(dir).stream()
                                              .filter(hourDir -> sinceDateTime.toLocalTime()
-                                                                                .getHour() <= Integer.parseInt(hourDir.getFileName()))
+                                                                             .getHour() <= Integer.parseInt(hourDir.getFileName()))
                                              .collect(toList()))
                         .flatMap(List::stream)
                         .map(hourDir -> list(hourDir).stream()
-                                                     .filter(file -> file.getFileName().endsWith(".mp4"))
                                                      .filter(movieFile -> {
                                                          final LocalDateTime dt =
                                                                  sinceDateTime.toLocalDate()
-                                                                                 .atTime(sinceDateTime.toLocalTime());
+                                                                              .atTime(sinceDateTime.toLocalTime());
 
-                                                         final LocalDateTime fileDateTime =
-                                                                 LocalDateTime.parse(movieFile.getFileName(),
-                                                                                     FILE_DATE_FORMAT);
-
-                                                         return dt.isEqual(fileDateTime) || dt.isBefore(fileDateTime);
+                                                         return dt.isBefore(movieFile.getCreatedInstant()
+                                                                                     .atZone(ZoneOffset.systemDefault())
+                                                                                     .toLocalDateTime());
                                                      })
                                                      .collect(toList()))
                         .flatMap(List::stream)
                         .collect(toList());
     }
 
-    public Instant getFileInstant(final DcsFile file) {
-        return LocalDateTime.parse(file.getFileName(), FILE_DATE_FORMAT)
+    Instant getFileInstant(final DcsFile file) {
+        return LocalDateTime.parse(file.getFileName().substring(0, file.getFileName().lastIndexOf('.') - 1),
+                                   // there's a trailing 'D'
+                                   FILE_DATE_FORMAT)
                             .atZone(ZoneId.systemDefault())
                             .toInstant();
     }
