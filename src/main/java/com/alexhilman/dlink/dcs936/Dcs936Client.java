@@ -33,7 +33,7 @@ public class Dcs936Client {
     private static final String SD_EXPLORE_PATH = "/eng/admin/adv_sdcard.cgi";
     private static final String SD_DOWNLOAD_PATH = "/cgi/admin/getSDFile.cgi";
     private static final DateTimeFormatter FIRST_FOLDER_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
-    private static final DateTimeFormatter FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss'D.mp4'");
+    public static final DateTimeFormatter FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss'D.mp4'");
 
     private final DcsFileInterpreter dcsFileInterpreter = new DcsFileInterpreter();
 
@@ -279,5 +279,11 @@ public class Dcs936Client {
                                                      .collect(toList()))
                         .flatMap(List::stream)
                         .collect(toList());
+    }
+
+    public Instant getFileInstant(final DcsFile file) {
+        return LocalDateTime.parse(file.getFileName(), FILE_DATE_FORMAT)
+                     .atZone(ZoneId.systemDefault())
+                     .toInstant();
     }
 }

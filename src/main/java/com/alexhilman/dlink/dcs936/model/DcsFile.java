@@ -12,7 +12,7 @@ public class DcsFile {
     private final DcsFileType fileType;
     private volatile int size = -1;
 
-    DcsFile(final String cameraName,
+    public DcsFile(final String cameraName,
             final String parentPath,
             final String fileName,
             final DcsFileType fileType) {
