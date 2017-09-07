@@ -244,19 +244,29 @@ public class Dcs936Client {
                            final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
 
                            return Flowable.fromIterable(list(dir))
+                                          .parallel()
+                                          .runOn(Schedulers.io())
                                           .filter(hourDir -> sinceLocalDateTime.isBefore(dirDate) ||
                                                   sinceDateTime.toLocalTime()
-                                                               .getHour() <= Integer.parseInt(hourDir.getFileName()));
+                                                               .getHour() <= Integer.parseInt(hourDir.getFileName()))
+                                          .sorted(Comparator.comparing(DcsFile::getAbsoluteFileName));
                        })
                        .flatMap(hourDir -> {
                            return Flowable.fromIterable(list(hourDir))
+                                          .parallel()
+                                          .runOn(Schedulers.io())
                                           .filter(movieFile -> {
                                               final LocalDateTime dt = sinceLocalDateTime.atTime(sinceDateTime.toLocalTime());
 
                                               return dt.isBefore(movieFile.getCreatedInstant()
                                                                           .atZone(ZoneOffset.systemDefault())
                                                                           .toLocalDateTime());
-                                          });
+                                          })
+                                          .map(dcsFile -> {
+                                              LOG.info("Matching file: {}", dcsFile.getAbsoluteFileName());
+                                              return dcsFile;
+                                          })
+                                          .sorted(Comparator.comparing(DcsFile::getCreatedInstant));
                        })
                        .sorted(Comparator.comparing(DcsFile::getCreatedInstant));
     }
