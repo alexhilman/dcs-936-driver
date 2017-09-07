@@ -31,4 +31,12 @@ public class Dcs936ClientTest {
 
         assertThat(fileInstant, is(now));
     }
+
+    @Test
+    public void shouldGetBaseName() {
+        assertThat(Dcs936Client.basename("/abc/123/"), is("123"));
+        assertThat(Dcs936Client.basename("/abc/123"), is("123"));
+        assertThat(Dcs936Client.basename("123"), is("123"));
+        assertThat(Dcs936Client.basename("/123"), is("123"));
+    }
 }

@@ -4,6 +4,7 @@ import com.alexhilman.dlink.GuiceTestInjectorRule;
 import com.alexhilman.dlink.dcs936.model.DcsFile;
 import com.alexhilman.dlink.helper.IOStreams;
 import com.google.inject.Inject;
+import io.reactivex.Flowable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Ignore;
@@ -54,28 +55,6 @@ public class Dcs936ClientIT {
 
     @Test
     @Ignore
-    public void shouldGetSizeForFile() {
-        final List<DcsFile> dateFolders = dcs936Client.list("/");
-        assertThat(dateFolders, is(notNullValue()));
-        assertThat(dateFolders, hasSize(greaterThan(1)));
-
-        final DcsFile firstDateFolder = dateFolders.get(0);
-        final List<DcsFile> hourFolders = dcs936Client.list(firstDateFolder);
-        assertThat(hourFolders, is(notNullValue()));
-        assertThat(hourFolders, hasSize(greaterThan(0)));
-
-        final DcsFile firstHourFolder = hourFolders.get(0);
-        final List<DcsFile> movieFiles = dcs936Client.list(firstHourFolder);
-        assertThat(movieFiles, is(notNullValue()));
-        assertThat(movieFiles, hasSize(greaterThan(0)));
-        movieFiles.forEach(file -> {
-            dcs936Client.requestSize(file);
-            assertThat(file.getSize(), is(greaterThan(0)));
-        });
-    }
-
-    @Test
-    @Ignore
     public void shouldOpenFile() throws IOException {
         final File tempFile = File.createTempFile("dcs-936-", ".mp4");
         assertThat(tempFile.exists(), is(true));
@@ -105,9 +84,10 @@ public class Dcs936ClientIT {
 
     @Test
     public void shouldFindNewFilesSinceInstant() {
-        final List<DcsFile> files = dcs936Client.findNewMoviesSince(Instant.now().minus(3, ChronoUnit.HOURS));
+        final Flowable<DcsFile> files =
+                dcs936Client.findNewMoviesSince(Instant.now().minus(3, ChronoUnit.HOURS));
 
         assertThat(files, is(notNullValue()));
-        assertThat(files, hasSize(greaterThanOrEqualTo(0)));
+        files.subscribe(dcsFile -> LOG.info("File: {}", dcsFile.getAbsoluteFileName()));
     }
 }

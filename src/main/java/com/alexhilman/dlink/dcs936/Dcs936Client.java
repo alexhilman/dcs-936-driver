@@ -1,10 +1,11 @@
 package com.alexhilman.dlink.dcs936;
 
 import com.alexhilman.dlink.dcs936.model.DcsFile;
-import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.squareup.okhttp.*;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,6 +15,7 @@ import java.net.URL;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,13 +28,12 @@ import static java.util.stream.Collectors.toList;
  */
 @Singleton
 public class Dcs936Client {
+    public static final DateTimeFormatter FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
     private static final Logger LOG = LogManager.getLogger(Dcs936Client.class);
     private static final AtomicLong REQUEEST_ID = new AtomicLong(0);
     private static final String SD_EXPLORE_PATH = "/eng/admin/adv_sdcard.cgi";
     private static final String SD_DOWNLOAD_PATH = "/cgi/admin/getSDFile.cgi";
     private static final DateTimeFormatter FIRST_FOLDER_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
-    public static final DateTimeFormatter FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-
     private final DcsFileInterpreter dcsFileInterpreter = new DcsFileInterpreter();
 
     private final OkHttpClient okHttpClient;
@@ -73,7 +74,7 @@ public class Dcs936Client {
                                                                .append(request.header(header))
                                                                .append("\n"));
 
-                        LOG.debug("Request:\n{}", requestString.toString());
+                        LOG.trace("Request:\n{}", requestString.toString());
 
                         final Response preParsedResponse = chain.proceed(request);
                         final Response responseToReturn;
@@ -110,10 +111,28 @@ public class Dcs936Client {
                                                      .build();
                         }
 
-                        LOG.debug("Response:\n{}", responseString.toString());
+                        LOG.trace("Response:\n{}", responseString.toString());
 
                         return responseToReturn;
                     });
+    }
+
+    static CharSequence basename(final String path) {
+        final int endIndex;
+        if (path.endsWith("/")) {
+            endIndex = path.lastIndexOf('/');
+        } else {
+            endIndex = path.length();
+        }
+
+        final int beginIndex;
+        if (path.lastIndexOf('/', endIndex - 1) >= 0) {
+            beginIndex = path.lastIndexOf('/', endIndex - 1) + 1;
+        } else {
+            beginIndex = 0;
+        }
+
+        return path.substring(beginIndex, endIndex);
     }
 
     List<DcsFile> list(final DcsFile file) {
@@ -132,11 +151,11 @@ public class Dcs936Client {
                         SearchParams.get()
                                     .withFilesPerPage(100)
                                     .withFolderPath(removeLeadingSlash(path));
-        LOG.debug("GET {}", url);
         final Request request = baseRequestBuilder()
                 .url(url)
                 .get()
                 .build();
+
         final Call call = okHttpClient.newCall(request);
         final Response response;
         try {
@@ -160,12 +179,6 @@ public class Dcs936Client {
         final List<DcsFile> files = dcsFileInterpreter.interpret(responseBody);
         return files.stream()
                     .filter(f -> f.isDirectory() || f.getFileName().endsWith(".mp4"))
-                    .peek(f -> {
-                        if (f.isFile()) {
-                            requestSize(f);
-                            f.setCreatedInstant(getFileInstant(f));
-                        }
-                    })
                     .collect(toList());
     }
 
@@ -189,45 +202,6 @@ public class Dcs936Client {
             return copyToByteArrayInputStream(response.body().byteStream());
         } finally {
             response.body().close();
-        }
-    }
-
-    void requestSize(final DcsFile dcsFile) {
-        checkNotNull(dcsFile, "dcsFile cannot be null");
-
-        if (dcsFile.isDirectory()) {
-            return;
-        }
-
-        final Request request =
-                baseRequestBuilder()
-                        .url(baseUrl + SD_DOWNLOAD_PATH + "?file=" + dcsFile.getFileName() + "&path=" + dcsFile.getAbsoluteFileName())
-                        .get()
-                        .build();
-
-        final Call call = okHttpClient.newCall(request);
-        final Response response;
-        try {
-            response = call.execute();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not get the headers for file: " + dcsFile.getAbsoluteFileName(), e);
-        }
-
-        if (response.code() >= 400) {
-            throw new RuntimeException("Could not get the headers for file: " + dcsFile.getAbsoluteFileName());
-        }
-
-        final String header = response.header("Content-Length");
-        if (Strings.isNullOrEmpty(header)) {
-            throw new RuntimeException("Server did not return the Content-Length for the requested file: " + dcsFile.getAbsoluteFileName());
-        }
-
-        dcsFile.setSize(Integer.parseInt(header));
-
-        try {
-            response.body().close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -255,37 +229,70 @@ public class Dcs936Client {
                 .header("Upgrade-Insecure-Requests", "1");
     }
 
-    public List<DcsFile> findNewMoviesSince(final Instant sinceInstant) {
+    public Flowable<DcsFile> findNewMoviesSince(final Instant sinceInstant) {
         final ZonedDateTime sinceDateTime = sinceInstant.atZone(ZoneId.systemDefault());
-        return list("/").stream()
-                        .filter(dir -> {
-                            final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
-                            return sinceDateTime.toLocalDate().isBefore(dirDate);
-                        })
-                        .map(dir -> list(dir).stream()
-                                             .filter(hourDir -> sinceDateTime.toLocalTime()
-                                                                             .getHour() <= Integer.parseInt(hourDir.getFileName()))
-                                             .collect(toList()))
-                        .flatMap(List::stream)
-                        .map(hourDir -> list(hourDir).stream()
-                                                     .filter(movieFile -> {
-                                                         final LocalDateTime dt =
-                                                                 sinceDateTime.toLocalDate()
-                                                                              .atTime(sinceDateTime.toLocalTime());
+        final LocalDate sinceLocalDateTime = sinceDateTime.toLocalDate();
+        return Flowable.fromIterable(list("/"))
+                       .parallel()
+                       .runOn(Schedulers.io())
+                       .filter(dir -> {
+                           final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
+                           return sinceLocalDateTime.isEqual(dirDate) || sinceLocalDateTime.isBefore(dirDate);
+                       })
+                       .flatMap(dir -> {
+                           final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
 
-                                                         return dt.isBefore(movieFile.getCreatedInstant()
-                                                                                     .atZone(ZoneOffset.systemDefault())
-                                                                                     .toLocalDateTime());
-                                                     })
-                                                     .collect(toList()))
-                        .flatMap(List::stream)
-                        .collect(toList());
+                           return Flowable.fromIterable(list(dir))
+                                          .filter(hourDir -> sinceLocalDateTime.isBefore(dirDate) ||
+                                                  sinceDateTime.toLocalTime()
+                                                               .getHour() <= Integer.parseInt(hourDir.getFileName()));
+                       })
+                       .flatMap(hourDir -> {
+                           return Flowable.fromIterable(list(hourDir))
+                                          .filter(movieFile -> {
+                                              final LocalDateTime dt = sinceLocalDateTime.atTime(sinceDateTime.toLocalTime());
+
+                                              return dt.isBefore(movieFile.getCreatedInstant()
+                                                                          .atZone(ZoneOffset.systemDefault())
+                                                                          .toLocalDateTime());
+                                          });
+                       })
+                       .sorted(Comparator.comparing(DcsFile::getCreatedInstant));
+
+//        return list("/").stream()
+//                        .parallel()
+//                        .filter(dir -> {
+//                            final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
+//                            return sinceLocalDateTime.isEqual(dirDate) || sinceLocalDateTime.isBefore(dirDate);
+//                        })
+//                        .map(dir -> {
+//                            final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
+//
+//                            return list(dir).stream()
+//                                            .filter(hourDir -> sinceLocalDateTime.isBefore(dirDate) ||
+//                                                    sinceDateTime.toLocalTime()
+//                                                                 .getHour() <= Integer.parseInt(hourDir.getFileName()))
+//                                            .collect(toList());
+//                        })
+//                        .flatMap(List::stream)
+//                        .map(hourDir -> list(hourDir).stream()
+//                                                     .filter(movieFile -> {
+//                                                         final LocalDateTime dt =
+//                                                                 sinceLocalDateTime
+//                                                                         .atTime(sinceDateTime.toLocalTime());
+//
+//                                                         return dt.isBefore(movieFile.getCreatedInstant()
+//                                                                                     .atZone(ZoneOffset.systemDefault())
+//                                                                                     .toLocalDateTime());
+//                                                     })
+//                                                     .collect(toList()))
+//                        .flatMap(List::stream)
+//                        .peek(file -> LOG.info("File matches date selection: {}", file.getAbsoluteFileName()))
+//                        .collect(toList());
     }
 
     Instant getFileInstant(final DcsFile file) {
-        return LocalDateTime.parse(file.getFileName().substring(0, file.getFileName().lastIndexOf('.') - 1),
-                                   // there's a trailing 'D'
-                                   FILE_DATE_FORMAT)
+        return LocalDateTime.parse(file.getFileName().substring(0, 15), FILE_DATE_FORMAT)
                             .atZone(ZoneId.systemDefault())
                             .toInstant();
     }

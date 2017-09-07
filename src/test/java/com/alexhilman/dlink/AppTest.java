@@ -1,7 +1,6 @@
 package com.alexhilman.dlink;
 
 import com.alexhilman.dlink.dcs936.Dcs936Client;
-import com.alexhilman.dlink.dcs936.model.DcsFile;
 import com.alexhilman.dlink.inject.DcsModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -9,10 +8,11 @@ import com.google.inject.Injector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class AppTest {
     private static final Logger LOG = LogManager.getLogger(AppTest.class);
@@ -37,43 +37,6 @@ public class AppTest {
             if (!downloadLocation.mkdir()) {
                 throw new IllegalStateException("Could not create directory: " + downloadLocation.getAbsolutePath());
             }
-        }
-    }
-
-    private void download(final DcsFile fileToDownload, final File parentFolder) {
-        final File folder = new File(parentFolder, fileToDownload.getParentPath());
-        if (!folder.exists()) {
-            if (!folder.mkdirs()) {
-                throw new IllegalStateException("Could not create directory: " + folder.getAbsolutePath());
-            }
-        }
-
-        try {
-            final File newFile = new File(folder, fileToDownload.getFileName());
-            if (newFile.exists() && newFile.length() == fileToDownload.getSize()) {
-                LOG.info("File {} already exists and matches the camera file size",
-                         fileToDownload.getAbsoluteFileName());
-            } else {
-                LOG.info("Downloading {} to {}", fileToDownload.getAbsoluteFileName(), parentFolder.getAbsolutePath());
-
-                if (newFile.exists()) {
-                    if (!newFile.delete()) {
-                        throw new IllegalStateException("Could not delete file: " + newFile.getAbsolutePath());
-                    }
-                }
-
-                if (!newFile.createNewFile()) {
-                    throw new IllegalStateException("Could not create new file: " + newFile.getAbsolutePath());
-                }
-
-                try (final InputStream inStream = dcs936Client.open(fileToDownload);
-                     final OutputStream outStream = new FileOutputStream(newFile)) {
-                    IOStreams.redirect(inStream, outStream);
-                }
-                assert newFile.length() > 0;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
