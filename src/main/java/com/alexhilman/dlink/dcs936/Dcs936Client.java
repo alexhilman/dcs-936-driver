@@ -258,37 +258,6 @@ public class Dcs936Client {
                                           });
                        })
                        .sorted(Comparator.comparing(DcsFile::getCreatedInstant));
-
-//        return list("/").stream()
-//                        .parallel()
-//                        .filter(dir -> {
-//                            final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
-//                            return sinceLocalDateTime.isEqual(dirDate) || sinceLocalDateTime.isBefore(dirDate);
-//                        })
-//                        .map(dir -> {
-//                            final LocalDate dirDate = LocalDate.parse(dir.getFileName(), FIRST_FOLDER_DATE_FORMAT);
-//
-//                            return list(dir).stream()
-//                                            .filter(hourDir -> sinceLocalDateTime.isBefore(dirDate) ||
-//                                                    sinceDateTime.toLocalTime()
-//                                                                 .getHour() <= Integer.parseInt(hourDir.getFileName()))
-//                                            .collect(toList());
-//                        })
-//                        .flatMap(List::stream)
-//                        .map(hourDir -> list(hourDir).stream()
-//                                                     .filter(movieFile -> {
-//                                                         final LocalDateTime dt =
-//                                                                 sinceLocalDateTime
-//                                                                         .atTime(sinceDateTime.toLocalTime());
-//
-//                                                         return dt.isBefore(movieFile.getCreatedInstant()
-//                                                                                     .atZone(ZoneOffset.systemDefault())
-//                                                                                     .toLocalDateTime());
-//                                                     })
-//                                                     .collect(toList()))
-//                        .flatMap(List::stream)
-//                        .peek(file -> LOG.info("File matches date selection: {}", file.getAbsoluteFileName()))
-//                        .collect(toList());
     }
 
     Instant getFileInstant(final DcsFile file) {
