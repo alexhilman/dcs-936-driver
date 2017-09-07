@@ -1,6 +1,7 @@
 package com.alexhilman.dlink.dcs936;
 
 import com.alexhilman.dlink.dcs936.model.DcsFile;
+import com.alexhilman.dlink.dcs936.model.DcsFileType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -21,7 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * don't know of another integration point with this camera to get the files.
  */
 public class DcsFileInterpreter {
-    private List<DcsFile> interpret(final Document document) {
+    private List<DcsFile.Builder> interpret(final Document document) {
         checkNotNull(document, "document cannot be null");
 
         final NodeList cameraNameNodes = document.getElementsByTagName("cameraName");
@@ -59,23 +61,47 @@ public class DcsFileInterpreter {
         return parseFolderStringValue(cameraName, folderPath, folderString.getTextContent());
     }
 
-    public List<DcsFile> interpret(final InputStream stream) {
+    List<DcsFile.Builder> interpret(final InputStream stream) {
         return interpret(parseXmlStream(stream));
     }
 
-    public List<DcsFile> interpret(final String responseBody) {
+    List<DcsFile.Builder> interpret(final String responseBody) {
         return interpret(parseXmlString(responseBody));
     }
 
-    private List<DcsFile> parseFolderStringValue(final String cameraName, final String folderPath,
-                                                 final String folderString) {
+    private List<DcsFile.Builder> parseFolderStringValue(final String cameraName, final String folderPath,
+                                                         final String folderString) {
         assert folderString != null;
-        final List<DcsFile> files = new ArrayList<>();
+        final List<DcsFile.Builder> files = new ArrayList<>();
         final StringTokenizer stringTokenizer = new StringTokenizer(folderString, "*", false);
         while (stringTokenizer.hasMoreTokens()) {
-            files.add(DcsFile.fromDelimitedString(cameraName, folderPath, stringTokenizer.nextToken()));
+            final String delimitedString = stringTokenizer.nextToken();
+
+            final String[] split = delimitedString.split(":");
+            checkArgument(split.length == 3, "invalid delimitedString format; expected x:y:z");
+
+            files.add(DcsFile.builder()
+                             .setCameraName(cameraName)
+                             .setParentPath(toFolderPath(folderPath))
+                             .setFileName(split[0])
+                             .setFileType(DcsFileType.fromCharacter(split[1].charAt(0))));
         }
         return files;
+    }
+
+    private static String toFolderPath(final String path) {
+        final StringBuilder newPath = new StringBuilder("/");
+
+        if (path.startsWith("/")) {
+            newPath.append(path.substring(1));
+        } else {
+            newPath.append(path);
+        }
+
+        if (newPath.charAt(newPath.length() - 1) == '/') {
+            return newPath.toString();
+        }
+        return newPath.append("/").toString();
     }
 
     private Document parseXmlStream(final InputStream stream) {

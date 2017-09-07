@@ -22,16 +22,16 @@ public class DcsFileInterpreterTest {
         try (final InputStream stream = getClass().getResourceAsStream(rootStructureResource)) {
             assertThat(stream, is(notNullValue()));
 
-            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(stream);
+            final List<DcsFile.Builder> dcsFiles = dcsFileInterpreter.interpret(stream);
 
             assertThat(dcsFiles, is(notNullValue()));
             assertThat(dcsFiles, hasSize(5));
 
-            final DcsFile firstFile = dcsFiles.get(0);
-            final DcsFile secondFile = dcsFiles.get(1);
-            final DcsFile thirdFile = dcsFiles.get(2);
-            final DcsFile fourthFile = dcsFiles.get(3);
-            final DcsFile fifthFile = dcsFiles.get(4);
+            final DcsFile.Builder firstFile = dcsFiles.get(0);
+            final DcsFile.Builder secondFile = dcsFiles.get(1);
+            final DcsFile.Builder thirdFile = dcsFiles.get(2);
+            final DcsFile.Builder fourthFile = dcsFiles.get(3);
+            final DcsFile.Builder fifthFile = dcsFiles.get(4);
 
             assertThat(firstFile.getFileName(), is("20170801"));
             assertThat(secondFile.getFileName(), is("20170731"));
@@ -54,16 +54,16 @@ public class DcsFileInterpreterTest {
         try (final InputStream stream = getClass().getResourceAsStream(secondaryStructureResource)) {
             assertThat(stream, is(notNullValue()));
 
-            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(stream);
+            final List<DcsFile.Builder> dcsFiles = dcsFileInterpreter.interpret(stream);
 
             assertThat(dcsFiles, is(notNullValue()));
             assertThat(dcsFiles, hasSize(5));
 
-            final DcsFile firstFile = dcsFiles.get(0);
-            final DcsFile secondFile = dcsFiles.get(1);
-            final DcsFile thirdFile = dcsFiles.get(2);
-            final DcsFile fourthFile = dcsFiles.get(3);
-            final DcsFile fifthFile = dcsFiles.get(4);
+            final DcsFile.Builder firstFile = dcsFiles.get(0);
+            final DcsFile.Builder secondFile = dcsFiles.get(1);
+            final DcsFile.Builder thirdFile = dcsFiles.get(2);
+            final DcsFile.Builder fourthFile = dcsFiles.get(3);
+            final DcsFile.Builder fifthFile = dcsFiles.get(4);
 
             assertThat(firstFile.getFileName(), is("21"));
             assertThat(secondFile.getFileName(), is("20"));
@@ -86,16 +86,16 @@ public class DcsFileInterpreterTest {
         try (final InputStream stream = getClass().getResourceAsStream(tertiaryStructureResource)) {
             assertThat(stream, is(notNullValue()));
 
-            final List<DcsFile> dcsFiles = dcsFileInterpreter.interpret(stream);
+            final List<DcsFile.Builder> dcsFiles = dcsFileInterpreter.interpret(stream);
 
             assertThat(dcsFiles, is(notNullValue()));
             assertThat(dcsFiles, hasSize(5));
 
-            final DcsFile firstFile = dcsFiles.get(0);
-            final DcsFile secondFile = dcsFiles.get(1);
-            final DcsFile thirdFile = dcsFiles.get(2);
-            final DcsFile fourthFile = dcsFiles.get(3);
-            final DcsFile fifthFile = dcsFiles.get(4);
+            final DcsFile.Builder firstFile = dcsFiles.get(0);
+            final DcsFile.Builder secondFile = dcsFiles.get(1);
+            final DcsFile.Builder thirdFile = dcsFiles.get(2);
+            final DcsFile.Builder fourthFile = dcsFiles.get(3);
+            final DcsFile.Builder fifthFile = dcsFiles.get(4);
 
             assertThat(firstFile.getFileName(), is("20170801_215228D.mp4"));
             assertThat(secondFile.getFileName(), is("20170801_215228D.jpg"));

@@ -176,10 +176,11 @@ public class Dcs936Client {
             throw new RuntimeException("Could not extract response body", e);
         }
 
-        final List<DcsFile> files = dcsFileInterpreter.interpret(responseBody);
-        return files.stream()
-                    .filter(f -> f.isDirectory() || f.getFileName().endsWith(".mp4"))
-                    .collect(toList());
+        return dcsFileInterpreter.interpret(responseBody)
+                                 .stream()
+                                 .filter(f -> f.isDirectory() || f.getFileName().endsWith(".mp4"))
+                                 .map(f -> f.build(this))
+                                 .collect(toList());
     }
 
     public InputStream open(final DcsFile dcsFile) throws IOException {
@@ -258,11 +259,5 @@ public class Dcs936Client {
                                           });
                        })
                        .sorted(Comparator.comparing(DcsFile::getCreatedInstant));
-    }
-
-    Instant getFileInstant(final DcsFile file) {
-        return LocalDateTime.parse(file.getFileName().substring(0, 15), FILE_DATE_FORMAT)
-                            .atZone(ZoneId.systemDefault())
-                            .toInstant();
     }
 }
